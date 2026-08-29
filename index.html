@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoQuiz: As Eras Sombrias</title>
+    <style>
+        /* ESTILO GÓTICO E PALETA DE CORES */
+        :root {
+            --bg-dark: #050505;
+            --bg-panel: #111111;
+            --wine: #580000;
+            --wine-hover: #820000;
+            --wine-glow: rgba(130, 0, 0, 0.6);
+            --moss-green: #3f521e;
+            --moss-glow: #688a2c;
+            --moss-border: #4d6624;
+            --text-light: #c8c8c8;
+            --gold-accent: #9a8038;
+            
+            /* Variável dinâmica da atmosfera (ativada no acerto) */
+            --era-bg-color: var(--bg-panel);
+            --era-accent-color: var(--moss-glow);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Palatino', serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, rgba(5, 5, 5, 1) 100%);
+        }
+
+        /* CONTAINER PRINCIPAL COM MOLDURA GÓTICA ESCULPIDA */
+        #game-container {
+            width: 100%;
+            max-width: 660px;
+            background-color: var(--era-bg-color);
+            position: relative;
+            padding: 38px 32px;
+            text-align: center;
+            transition: background-color 1.4s ease, border-color 1.4s ease, box-shadow 1.4s ease;
+            
+            /* ESTRUTURA DA MOLDURA EM CAMADAS */
+            border: 3px solid var(--moss-border);
+            outline: 6px solid #080808;
+            outline-offset: -12px;
+            box-shadow: 
+                0 0 0 2px var(--moss-green),
+                0 0 45px rgba(0, 0, 0, 0.95),
+                inset 0 0 0 2px rgba(104, 138, 44, 0.4),
+                inset 0 0 110px 40px rgba(0, 0, 0, 0.85);
+        }
+
+        /* CANTONEIRAS ORNAMENTADAS GÓTICAS */
+        .corner-ornament {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .corner-top-left {
+            top: 4px;
+            left: 4px;
+            border-top: 3px solid var(--moss-glow);
+            border-left: 3px solid var(--moss-glow);
+        }
+        .corner-top-left::after {
+            content: '❖';
+            position: absolute;
+            top: -3px;
+            left: 2px;
+            font-size: 10px;
+            color: var(--gold-accent);
+        }
+
+        .corner-top-right {
+            top: 4px;
+            right: 4px;
+            border-top: 3px solid var(--moss-glow);
+            border-right: 3px solid var(--moss-glow);
+        }
+        .corner-top-right::after {
+            content: '❖';
+            position: absolute;
+            top: -3px;
+            right: 2px;
+            font-size: 10px;
+            color: var(--gold-accent);
+        }
+
+        .corner-bottom-left {
+            bottom: 4px;
+            left: 4px;
+            border-bottom: 3px solid var(--moss-glow);
+            border-left: 3px solid var(--moss-glow);
+        }
+        .corner-bottom-left::after {
+            content: '❖';
+            position: absolute;
+            bottom: -3px;
+            left: 2px;
+            font-size: 10px;
+            color: var(--gold-accent);
+        }
+
+        .corner-bottom-right {
+            bottom: 4px;
+            right: 4px;
+            border-bottom: 3px solid var(--moss-glow);
+            border-right: 3px solid var(--moss-glow);
+        }
+        .corner-bottom-right::after {
+            content: '❖';
+            position: absolute;
+            bottom: -3px;
+            right: 2px;
+            font-size: 10px;
+            color: var(--gold-accent);
+        }
+
+        /* LINHA DE FILIGRANA INTERNA */
+        .inner-filigree {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px dashed rgba(104, 138, 44, 0.25);
+            pointer-events: none;
+            z-index: 14;
+        }
+
+        h1 {
+            color: var(--moss-glow);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+            font-size: 1.6rem;
+            text-shadow: 2px 2px 6px #000, 0 0 12px rgba(104, 138, 44, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+
+        .gothic-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: var(--moss-border);
+            font-size: 0.8rem;
+            letter-spacing: 6px;
+        }
+
+        p {
+            line-height: 1.65;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(104, 138, 44, 0.3);
+            font-size: 0.85rem;
+            color: var(--moss-glow);
+            font-weight: bold;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* BOTÕES GÓTICOS */
+        .btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(180deg, var(--wine) 0%, #350000 100%);
+            color: #f0f0f0;
+            border: 1px solid var(--moss-border);
+            padding: 15px;
+            margin: 11px 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, var(--wine-hover) 0%, #4a0000 100%);
+            box-shadow: 0 0 16px var(--wine-glow), 0 0 10px var(--moss-glow);
+            border-color: var(--moss-glow);
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+        .btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            border-color: #333;
+        }
+
+        /* DICA EXTRA */
+        #extra-clue {
+            background: rgba(0, 0, 0, 0.88);
+            border-left: 4px solid var(--moss-glow);
+            border-right: 1px solid rgba(104, 138, 44, 0.2);
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-style: italic;
+            display: none;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+            z-index: 2;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        /* TELAS */
+        .screen {
+            display: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .highlight {
+            color: var(--moss-glow);
+            font-weight: bold;
+        }
+
+        .game-over-title { color: #ba1111; text-shadow: 0 0 15px rgba(186, 17, 17, 0.5); }
+        .victory-title { color: #d4af37; text-shadow: 0 0 18px rgba(212, 175, 55, 0.6); }
+
+        /* --- TELA DE TRANSIÇÃO COM MOLDURA ADAPTÁVEL AO TEXTO --- */
+        #screen-transition {
+            background-color: rgba(5, 5, 5, 0.96);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            padding: 20px;
+        }
+
+        #screen-transition.active {
+            display: flex;
+        }
+
+        /* O CARD/MOLDURA DINÂMICA QUE SE AJUSTA AO TAMANHO DO TEXTO */
+        .transition-frame-card {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            height: auto;
+            min-height: fit-content;
+            background: linear-gradient(180deg, rgba(16, 16, 16, 0.98) 0%, rgba(8, 8, 8, 0.98) 100%);
+            border: 2px solid var(--era-accent-color);
+            outline: 4px solid #000;
+            outline-offset: -8px;
+            padding: 30px 24px;
+            box-shadow: 
+                0 0 30px rgba(0, 0, 0, 0.9),
+                0 0 20px rgba(0, 0, 0, 0.8),
+                inset 0 0 40px rgba(0, 0, 0, 0.9),
+                0 0 15px var(--era-accent-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: cardPop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: border-color 0.8s ease, box-shadow 0.8s ease;
+        }
+
+        /* Cantoneiras internas da moldura de transição */
+        .transition-frame-card .corner-top-left { border-color: var(--era-accent-color); top: 3px; left: 3px; }
+        .transition-frame-card .corner-top-right { border-color: var(--era-accent-color); top: 3px; right: 3px; }
+        .transition-frame-card .corner-bottom-left { border-color: var(--era-accent-color); bottom: 3px; left: 3px; }
+        .transition-frame-card .corner-bottom-right { border-color: var(--era-accent-color); bottom: 3px; right: 3px; }
+        
+        .transition-frame-card .inner-filigree {
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes cardPop {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .transition-icon {
+            font-size: 3rem;
+            color: var(--era-accent-color);
+            margin-bottom: 8px;
+            animation: pulse 1.8s infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        .era-atmosphere-text {
+            font-style: italic;
+            color: #e0e0e0;
+            margin: 10px 0 15px 0;
+            width: 100%;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            text-shadow: 1px 1px 4px #000;
+            position: relative;
+            z-index: 2;
+            word-wrap: break-word;
+        }
+
+        /* BARRA DE PROGRESSO DO SALTO TEMPORAL */
+        .jump-progress-bar {
+            width: 90%;
+            height: 5px;
+            background: #181818;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 6px #000;
+            z-index: 2;
+        }
+
+        .jump-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--era-accent-color);
+            box-shadow: 0 0 12px var(--era-accent-color);
+        }
+
+        /* 8.5 SEGUNDOS SINCRONIZADOS */
+        .jump-progress-fill.running {
+            animation: fillProgress 10s linear forwards;
+        }
+
+        @keyframes fillProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 6px var(--moss-green); }
+            50% { transform: scale(1.15); text-shadow: 0 0 25px var(--era-accent-color); }
+            100% { transform: scale(1); text-shadow: 0 0 6px var(--moss-green); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- DETALHES ORNAMENTADOS DA MOLDURA PRINCIPAL -->
+        <div class="corner-ornament corner-top-left"></div>
+        <div class="corner-ornament corner-top-right"></div>
+        <div class="corner-ornament corner-bottom-left"></div>
+        <div class="corner-ornament corner-bottom-right"></div>
+        <div class="inner-filigree"></div>
+        
+        <!-- TELA DE TRANSIÇÃO E FEEDBACK DA ERA (COM MOLDURA ADAPTÁVEL) -->
+        <div id="screen-transition" class="screen">
+            <div class="transition-frame-card">
+                <!-- Cantoneiras da Moldura de Transição -->
+                <div class="corner-ornament corner-top-left"></div>
+                <div class="corner-ornament corner-top-right"></div>
+                <div class="corner-ornament corner-bottom-left"></div>
+                <div class="corner-ornament corner-bottom-right"></div>
+                <div class="inner-filigree"></div>
+
+                <div class="transition-icon">✦</div>
+                <h1 id="transition-title" style="color: var(--era-accent-color); margin-bottom: 4px; font-size: 1.45rem;">Época Sincronizada</h1>
+                <div class="gothic-divider">─── ❖ ───</div>
+                
+                <!-- Texto que adapta a altura da moldura dinamicamente -->
+                <p id="transition-atmosphere" class="era-atmosphere-text"></p>
+                
+                <p class="highlight" id="transition-points" style="margin: 5px 0 0 0; font-size: 1.1rem;">+100 Pontos</p>
+                
+                <div class="jump-progress-bar">
+                    <div class="jump-progress-fill" id="progress-fill"></div>
+                </div>
+                <small style="color: #777; margin-top: 10px; font-size: 0.75rem; letter-spacing: 2px; position: relative; z-index: 2;">RECONECTANDO LINHA DO TEMPO...</small>
+            </div>
+        </div>
+
+        <!-- TELA INICIAL -->
+        <div id="screen-start" class="screen active">
+            <h1>ChronoQuiz</h1>
+            <div class="gothic-divider">─── ❖ ───</div>
+            <p class="highlight" style="letter-spacing: 2px;">AS ERAS SOMBRIAS</p>
+            <p>Você é o Viajante. Sua máquina cronológica sofreu uma sobrecarga e passou a saltar cegamente através dos séculos.</p>
+            <p>Em cada salto, analise o ambiente e descubra em qual momento histórico desembarcou. Você tem exatamente <strong>2 chances</strong> por enigma antes do colapso definitivo.</p>
+            <button class="btn" onclick="iniciarJogo()">Iniciar Viagem</button>
+        </div>
+
+        <!-- TELA DO JOGO (AMBIENTE NEUTRO PARA DEDUÇÃO) -->
+        <div id="screen-game" class="screen">
+            <div class="status-bar">
+                <span id="current-step-display">Época: 1/5</span>
+                <span id="lives-display">Tentativas: 2</span>
+                <span id="score-display">Pontos: 0</span>
+            </div>
+            
+            <div id="enigma-text"></div>
+            
+            <div id="extra-clue">
+                <strong>Sussurro Temporal:</strong> <span id="clue-content"></span>
+            </div>
+
+            <div id="options-container">
+                <!-- Botões gerados dinamicamente via JS -->
+            </div>
+        </div>
+
+        <!-- TELA GAME OVER -->
+        <div id="screen-gameover" class="screen">
+            <h1 class="game-over-title">Perdido no Tempo</h1>
+            <div class="gothic-divider">─── ❖ ───</div>
+            <p>Suas tentativas se esgotaram. A máquina cronológica desintegrou-se e sua consciência foi espalhada pelas sombras do vazio eterno.</p>
+            <p>Pontuação Final: <span id="final-score-bad" class="highlight">0</span></p>
+            <button class="btn" onclick="iniciarJogo()">Tentar Novamente</button>
+        </div>
+
+        <!-- TELA VITÓRIA -->
+        <div id="screen-victory" class="screen">
+            <h1 class="victory-title">Mestre do Tempo</h1>
+            <div class="gothic-divider">─── ❖ ───</div>
+            <p>Todas as coordenadas foram restauradas. As eras sombrias foram superadas e você conduziu a máquina de volta ao presente.</p>
+            <p>Pontuação Final: <span id="final-score-good" class="highlight">0</span></p>
+            <button class="btn" onclick="iniciarJogo()">Jogar Novamente</button>
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * BANCO DE DADOS DAS ERAS
+         */
+        const bancoDadosOriginal = [
+            {
+                nome: "Antigo Egito",
+                enigma: "O ar é seco e quente. Ao longe, artesãos trabalham sob o comando de um faraó divinizado. Enormes pirâmides de pedra desafiam o horizonte desértico e o Rio Nilo brilha como prata sob o sol escaldante.",
+                clue: "O papiro é a principal forma de registro e os corpos dos nobres são mumificados para a eternidade.",
+                options: ["Grécia Antiga", "Antigo Egito", "Mesopotâmia"],
+                correct: 1,
+                atmosphere: "As areias douradas do Nilo ardem ao redor. O aroma de mirra, linho sagrado e incenso antigo preenche a câmara enquanto hieróglifos ancestrais brilham nas paredes de pedra.",
+                bgColor: "#2a1c0d",
+                accentColor: "#d9a441"
+            },
+            {
+                nome: "Idade Média",
+                enigma: "O cheiro de fumaça de lenha e a sombra da peste negra pairam sobre aldeias lamacentas. Cavaleiros em armaduras guardam castelos de pedra, enquanto sinos de catedrais góticas ecoam pela névoa.",
+                clue: "Estamos no feudalismo: suseranos e vassalos governam uma sociedade dividida por espadas e orações.",
+                options: ["Idade Média", "Império Romano", "Renascimento"],
+                correct: 0,
+                atmosphere: "A umidade fria e a névoa dos feudos invadem o refúgio. O eco soturno de cânticos gregorianos e o retinir de armaduras pesadas marcam a passagem vitoriosa pela era das trevas.",
+                bgColor: "#14211f",
+                accentColor: "#589188"
+            },
+            {
+                nome: "Era Vitoriana",
+                enigma: "Chaminés monumentais cospem fuligem negra sobre os telhados de Londres. O rugido de caldeiras a vapor e o brilho fraco de lampiões a gás iluminam carruagens cruzando ruas de paralelepípedo.",
+                clue: "A Rainha Vitória governa o império britânico no auge da Revolução Industrial.",
+                options: ["Guerra Civil Americana", "Revolução Francesa", "Era Vitoriana"],
+                correct: 2,
+                atmosphere: "O ar torna-se denso com fumaça de carvão e fuligem industrial. Engrenagens titânicas giram ritmicamente sob o brilho dourado e trêmulo dos lampiões londrinos a gás.",
+                bgColor: "#222222",
+                accentColor: "#ababab"
+            },
+            {
+                nome: "Japão Feudal",
+                enigma: "Pétalas de cerejeira caem sobre o aço dobrado de uma katana. O Shogun comanda generais em palácios de madeira fortificados, enquanto samurais silenciosos seguem um juramento de sangue.",
+                clue: "O Período Edo mantém a ilha isolada do restante do mundo sob o rígido código do Bushido.",
+                options: ["Dinastia Ming", "Japão Feudal", "Mongólia de Genghis Khan"],
+                correct: 1,
+                atmosphere: "Pétalas escarlates esvoaçam na brisa gélida da noite. O farfalhar do vento nos bambuzais e o fio reluzente do aço samurai selam o alinhamento temporal perfeito.",
+                bgColor: "#2b1016",
+                accentColor: "#cf4663"
+            },
+            {
+                nome: "Futuro Distópico",
+                enigma: "Luzes de neon roxas e verdes cortam a chuva ácida incessante. Androides e humanos aprimorados vagam por arranha-céus colossais controlados por megacorporações sem escrúpulos.",
+                clue: "Uma distopia cyberpunk onde a tecnologia de ponta convive com a decadência moral absoluta.",
+                options: ["Futuro Distópico", "Anos 80", "Era Atômica"],
+                correct: 0,
+                atmosphere: "Circuitos cibernéticos zunem em alta frequência sob chuva ácida sintética. O pulsar elétrico de hologramas neon em tons de púrpura banha a máquina com energia pura do futuro.",
+                bgColor: "#130821",
+                accentColor: "#a352f2"
+            }
+        ];
+
+        // Estado do Jogo
+        let fasesEmbaralhadas = [];
+        let indiceFaseAtual = 0;
+        let pontuacao = 0;
+        let tentativasRestantes = 2;
+        let podeResponder = false;
+
+        const rootStyles = document.documentElement.style;
+        const TEMPO_TRANSICAO_MS = 10000; // 10 segundos
+
+        /**
+         * EMBARALHAMENTO FISHER-YATES
+         */
+        function fisherYatesShuffle(array) {
+            const copia = [...array];
+            for (let i = copia.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copia[i], copia[j]] = [copia[j], copia[i]];
+            }
+            return copia;
+        }
+
+        function setAtmosferaVisual(corFundo, corDestaque = '#688a2c') {
+            rootStyles.setProperty('--era-bg-color', corFundo);
+            rootStyles.setProperty('--era-accent-color', corDestaque);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        /**
+         * CICLO PRINCIPAL
+         */
+        function iniciarJogo() {
+            fasesEmbaralhadas = fisherYatesShuffle(bancoDadosOriginal);
+            indiceFaseAtual = 0;
+            pontuacao = 0;
+            carregarFase();
+        }
+
+        function carregarFase() {
+            if (indiceFaseAtual >= fasesEmbaralhadas.length) {
+                finalizarJogo(true);
+                return;
+            }
+
+            tentativasRestantes = 2;
+            podeResponder = true;
+            const fase = fasesEmbaralhadas[indiceFaseAtual];
+            
+            // FASE DE ENIGMA: Fundo neutro/gótico preservado para dedução
+            setAtmosferaVisual('var(--bg-panel)', 'var(--moss-glow)');
+
+            // Atualização da interface
+            document.getElementById('current-step-display').innerText = `Época: ${indiceFaseAtual + 1}/${fasesEmbaralhadas.length}`;
+            document.getElementById('lives-display').innerText = `Tentativas: ${tentativasRestantes}`;
+            document.getElementById('score-display').innerText = `Pontos: ${pontuacao}`;
+            document.getElementById('enigma-text').innerText = fase.enigma;
+            document.getElementById('extra-clue').style.display = 'none';
+
+            // Embaralhamento dos botões da fase
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const opcoesMapeadas = fase.options.map((texto, indexOriginal) => ({
+                texto: texto,
+                correta: indexOriginal === fase.correct
+            }));
+
+            const opcoesEmbaralhadas = fisherYatesShuffle(opcoesMapeadas);
+
+            opcoesEmbaralhadas.forEach(opcao => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = opcao.texto;
+                btn.onclick = () => verificarResposta(opcao.correta, btn);
+                container.appendChild(btn);
+            });
+
+            showScreen('screen-game');
+        }
+
+        /**
+         * VERIFICAÇÃO E REVELAÇÃO DA ATMOSFERA
+         */
+        function verificarResposta(acertou, btnElement) {
+            if (!podeResponder) return;
+
+            const fase = fasesEmbaralhadas[indiceFaseAtual];
+
+            if (acertou) {
+                podeResponder = false;
+                const pontosGanhos = (tentativasRestantes === 2) ? 100 : 50;
+                pontuacao += pontosGanhos;
+
+                // ATMOSFERA VISUAL DA ERA ATIVADA APENAS APÓS O ACERTO
+                setAtmosferaVisual(fase.bgColor, fase.accentColor);
+
+                // Configuração da tela de transição com moldura adaptável
+                document.getElementById('transition-title').innerText = `Época: ${fase.nome}`;
+                document.getElementById('transition-atmosphere').innerText = `"${fase.atmosphere}"`;
+                document.getElementById('transition-points').innerText = `+${pontosGanhos} Pontos`;
+                
+                // Reinicia barra de progresso (8.5s)
+                const progressBar = document.getElementById('progress-fill');
+                progressBar.classList.remove('running');
+                void progressBar.offsetWidth; // Força reflow
+                progressBar.classList.add('running');
+
+                showScreen('screen-transition');
+
+                // Tempo estendido para imersão
+                setTimeout(() => {
+                    indiceFaseAtual++;
+                    carregarFase();
+                }, TEMPO_TRANSICAO_MS);
+
+            } else {
+                tentativasRestantes--;
+                btnElement.disabled = true;
+
+                if (tentativasRestantes > 0) {
+                    // 1º Erro: Exibe dica e mantém opções restantes ativas
+                    document.getElementById('lives-display').innerText = `Tentativas: ${tentativasRestantes}`;
+                    document.getElementById('clue-content').innerText = fase.clue;
+                    document.getElementById('extra-clue').style.display = 'block';
+                } else {
+                    // 2º Erro: Game Over imediato
+                    podeResponder = false;
+                    finalizarJogo(false);
+                }
+            }
+        }
+
+        /**
+         * FINALIZAÇÃO
+         */
+        function finalizarJogo(vitoria) {
+            setAtmosferaVisual('var(--bg-panel)', 'var(--moss-glow)');
+
+            if (vitoria) {
+                document.getElementById('final-score-good').innerText = pontuacao;
+                showScreen('screen-victory');
+            } else {
+                document.getElementById('final-score-bad').innerText = pontuacao;
+                showScreen('screen-gameover');
+            }
+        }
+    </script>
+</body>
+</html>
